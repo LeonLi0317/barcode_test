@@ -12,11 +12,11 @@
         async function startScanner() {
             if (scannerActive) return;
             scannerActive = true;
-            codeReader = new ZXingBrowser.BrowserMultiFormatReader();
-
+            codeReader = new ZXing.BrowserMultiFormatReader();
+            
             const videoElement = document.getElementById('video');
             const resultBox = document.getElementById('barcodeResult');
-
+            
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 videoElement.srcObject = stream;
@@ -33,7 +33,7 @@
                 scannerActive = false;
             }
         }
-
+        
         function stopScanner() {
             if (!scannerActive) return;
             scannerActive = false;
