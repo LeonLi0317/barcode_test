@@ -1,0 +1,26 @@
+<video id="barcodeScanner" style="width: 100%;"></video>
+<input type="text" id="barcodeResult" placeholder="條碼數據">
+<button id="startScan">開始掃描</button>
+
+<script type="module">
+  import { BrowserMultiFormatReader } from '@zxing/browser';
+
+  document.getElementById('startScan').addEventListener('click', async () => {
+    const codeReader = new BrowserMultiFormatReader();
+    const videoElement = document.getElementById('barcodeScanner');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      videoElement.srcObject = stream;
+      videoElement.play();
+
+      codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
+        if (result) {
+          document.getElementById('barcodeResult').value = result.text;
+        }
+      });
+    } catch (err) {
+      alert('相機權限被拒絕');
+    }
+  });
+</script>
