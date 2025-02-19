@@ -1,26 +1,56 @@
-<video id="barcodeScanner" style="width: 100%;"></video>
-<input type="text" id="barcodeResult" placeholder="條碼數據">
-<button id="startScan">開始掃描</button>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Scanner</title>
+    <script type="module">
+        import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@latest';
+        
+        let scannerActive = false;
+        let codeReader;
 
-<script type="module">
-  import { BrowserMultiFormatReader } from '@zxing/browser';
+        async function startScanner() {
+            if (scannerActive) return;
+            scannerActive = true;
+            codeReader = new BrowserMultiFormatReader();
+            
+            const videoElement = document.getElementById('video');
+            const resultBox = document.getElementById('barcodeResult');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                videoElement.srcObject = stream;
+                videoElement.play();
 
-  document.getElementById('startScan').addEventListener('click', async () => {
-    const codeReader = new BrowserMultiFormatReader();
-    const videoElement = document.getElementById('barcodeScanner');
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      videoElement.srcObject = stream;
-      videoElement.play();
-
-      codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
-        if (result) {
-          document.getElementById('barcodeResult').value = result.text;
+                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
+                    if (result) {
+                        resultBox.value = result.text;
+                        stopScanner();
+                    }
+                });
+            } catch (err) {
+                alert('無法開啟相機，請確認權限');
+                scannerActive = false;
+            }
         }
-      });
-    } catch (err) {
-      alert('相機權限被拒絕');
-    }
-  });
-</script>
+        
+        function stopScanner() {
+            if (!scannerActive) return;
+            scannerActive = false;
+            const videoElement = document.getElementById('video');
+            const stream = videoElement.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            videoElement.srcObject = null;
+        }
+    </script>
+</head>
+<body>
+    <h2>倉儲條碼掃描</h2>
+    <input type="text" id="barcodeResult" placeholder="條碼數據">
+    <button onclick="startScanner()">開啟相機掃描</button>
+    <video id="video" style="width: 100%; max-width: 400px; display: block; margin-top: 10px;"></video>
+</body>
+</html>
